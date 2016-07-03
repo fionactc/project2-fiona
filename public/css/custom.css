@@ -1,0 +1,219 @@
+body{
+  font-family: 'Roboto Mono';
+}
+.hide{
+  position: absolute;
+  visibility: hidden;
+}
+#home {
+  text-align: center;
+}
+#home #banner{
+  width: 100%;
+}
+
+#home h3{
+  margin-top: 40px;
+}
+#create .picture{
+  border-radius: 50%;
+  width: 85px;
+  border: 2px solid #2b99b6;
+  height: 85px;
+  float: left;
+  margin-right: 20px;
+}
+
+#create-plan .picture{
+  /*border-radius: 50%;*/
+  width: 85px;
+  height: 85px;
+  display: absolute;
+  border-radius: 5px 0 0 5px;
+  margin-right: 10px;
+}
+
+#create-plan .details{
+  width: 100px;
+}
+
+#create-plan h4{
+  font-size: 15px;
+}
+#create-plan .details p{
+  font-size: 10px;
+}
+#create-plan #itemSuggestion .suggestedLocation{
+  display: inline-block;
+  vertical-align: top;
+  /*width: 300px;*/
+  margin-right: 20px;
+  white-space: normal;
+  /*border: 1px solid black;*/
+  height: 85px;
+  width: 200px;
+  background-color: #70C1B3;
+  color: white;
+  border-radius: 5px;
+}
+#create .location-name{
+  text-transform: capitalize;
+}
+#create .destination-box {
+  padding: 10px;
+}
+#create .days{
+  margin: 5px;
+  text-align: center;
+}
+
+#create .des-subbox{
+  border-left: 1px solid rgb(221, 221, 221);
+  height: 100px;
+}
+#create .destination{
+  margin-top: 10px;
+}
+#create .destination p{
+  font-weight: 700;
+}
+#create-plan h3{
+  font-family: 'Bree Serif', serif;
+  text-transform: capitalize;
+}
+#create-plan #meta{
+  color: #5D576B;
+}
+#create-plan .nav-pills a{
+  color: black;
+}
+#create-plan .nav-pills .active a{
+  background-color: white;
+  border: 1px solid black;
+  border-radius: 0;
+  width: 100%;
+}
+#create-plan #meta .col-xs-4{
+  margin-top:40px;
+}
+#create-plan #meta, #control {
+  border-bottom: 1px solid rgb(173, 173, 173);
+}
+#create-plan .box{
+  float: left;
+  width: 200px;
+  height: 100px;
+  margin: 1em;
+}
+
+#create-plan #itemSuggestion{
+  margin-top:10px;
+}
+
+#create-plan #innerContainer{
+  width: 100%;
+  overflow-y: hidden;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+#create-plan #control{
+}
+
+#create-plan .inline{
+  display:inline-block;
+  vertical-align: top;
+}
+#create-plan .dayCol{
+  display: inline-block;
+  vertical-align: top;
+  width: 200px;
+  margin: 5px;
+  /*background-color: rgb(173, 173, 173);*/
+}
+.thumbnail{
+  width: 250px;
+  height: 280px;
+  vertical-align: top;
+/*  height: 230px;*/
+}
+.thumbnail .imgdiv{
+  width: 250px;
+  height: 180px;
+  overflow: hidden;
+
+/*  height: 150px;
+  width: auto;
+  overflow: hidden;
+*/
+}
+#create-plan h5{
+  font-family: 'Roboto Mono';
+  font-weight: 700;
+  font-size: 14px;
+  margin-left: 10px;
+  margin-right: 10px;
+  width: 170px;
+  display: inline-block;
+  position: absolute;
+}
+#create-plan .dayCol span{
+  margin-left: 10px;
+  bottom: -50px;
+  position: relative;
+}
+#create-plan .dayTitle{
+  color: white;
+  font-size: 20px;
+  padding: 10px;
+  text-align: center;
+  width: 190px;
+  background-color: #FC354C;
+  border-radius:0;
+  border: 0;
+}
+#create-plan .ui-sortable-placeholder{
+  background-color: #13747D;
+}
+#create-plan .dayCol .item{
+  background-color: #FCF7C5;
+  margin-top: 5px;
+  width: 190px;
+  height: 80px;
+  border-radius: 5px;
+  color: #29221F;
+  vertical-align: top;
+}
+#create-plan ul{
+  padding-left: 0;
+  list-style: none;
+
+}
+#create-plan #dayTabContent .location{
+  text-align: left;
+  font-weight: 700;
+}
+#create-plan .up-and-down{
+  float:left;
+  clear: none;
+}
+#create-plan #dayTabContent .location span{
+  float: right;
+}
+#create-plan #dayTabContent .item-meta{
+  margin-top: 20px;
+}
+
+/*------------------*/
+
+@media(max-width:767px){
+  #create-plan h3{
+    margin-top:0;
+  }
+/*  #create-plan div{
+    padding: 0;
+  }
+*/}
+@media(min-width:768px){}
+@media(min-width:992px){}
+@media(min-width:1200px){}

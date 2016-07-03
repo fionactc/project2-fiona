@@ -1,0 +1,174 @@
+extends layout
+
+block content
+  .container
+    .row
+      #create-plan.col-xs-12
+        #meta.col-xs-12
+          .col-xs-8
+            h3#title #{title}
+            p#idHere(style='position: absolute; visibility: hidden;') #{planId}
+            p#noOfDay.hide #{days}
+            p created by
+              a(href='#')  #{author}
+            a(href='#') #food
+            a(href='#') #summertrip
+          .col-xs-4
+            button#publish.btn.btn-success Publish
+            button.btn.btn-default Reset
+
+        #control.col-xs-12
+          .row
+            .col-xs-2
+              ul#myTabs.nav.nav-pills.nav-stacked
+                li.active
+                  a(href='#new', data-toggle='pill') NEW
+                li
+                  a(href='#cart', data-toggle='pill') CART
+            .col-xs-10
+              .tab-content
+                #new.tab-pane.active
+                  .row
+                    .col-xs-2(style='margin-left: -30px')
+                      ul#types.nav.nav-pills.nav-stacked
+                        li.active
+                          a(href='#destination', data-toggle='pill').fa.fa-picture-o
+                        li
+                          a(href='#accomodation', data-toggle='pill').fa.fa-home
+                        li
+                          a(href='#transport', data-toggle='pill').fa.fa-train
+                    .col-xs-10
+                      .tab-content
+                        #destination.tab-pane.active
+                          .form-group
+                            .first-row
+                              label(for='autocomplete') Destination
+                              input#autocomplete(type='text', placeholder='enter destination', style='width: 300px')
+
+                            .second-row
+                              label(for='time') Time
+                              input#time(type='time', placeholder='e.g. 10am')
+                            .third-row
+                              label(style='float: left;') Day
+                              select.form-control#daySelect(style='width: 50px')
+
+                              button#add.btn.btn-success Add
+                              button#item-reset.btn.btn-default Reset
+
+                        #accomodation.tab-pane
+                        #transport.tab-pane
+                #cart.tab-pane CART
+        //- visible-xs
+        #timeline.col-xs-12.col-sm-9
+          ul#dayTab.nav.nav-tabs(role='tablist')
+
+          #dayTabContent.tab-content
+
+
+block script
+  script.
+    $(document).ready(function(){
+      var itemName;
+      var pictureUrl;
+      var itemTime;
+      var itemDay;
+      var autocomplete;
+      var planId = $('#idHere').text();
+
+      function setPage(){
+        var days = Number($('#noOfDay').text());
+        //- generate option list
+        for (var i=1; i<=days; i++){
+          $('#daySelect').append('<option>' + i + '</option>');
+          var dayTabHTML = "<li role='presentation'>" +
+                              "<a href='#" + i + "' aria-controls='" + i +"' role='tab' data-toggle='tab'> Day" + i + "</a></li>";
+          $('#dayTab').append(dayTabHTML);
+          var dayTabContentHTML = "<ul id='" + i + "' class='dayTabCol tab-pane fade in sortable' role='tabpanel'></ul>";
+          $('#dayTabContent').append(dayTabContentHTML);
+        }
+        $('#dayTab li:first-child').addClass('active');
+        $('#dayTabContent ul:first-child').addClass('active');
+      }
+      //-
+      function addNewItem(){
+        itemTime = $('#time').val();
+        itemDay = $('#daySelect').val();
+        var itemHTML = "<li class='item'>" +
+                        "<div class='up-and-down'>" +
+                          "<div class='up'>" +
+                            "<p class='fa fa-chevron-up'>" +
+                          "</div>" +
+                          "<div class='down'>" +
+                            "<p class='fa fa-chevron-down'>" +
+                          "</div>" +
+                        "</div>" +
+                        "<div class='item-content'>" +
+                          "<p class='location'>" + itemName + "</p>" +
+                          "<span class='item-time'>" + itemTime + "</span>" +
+                        "</div>" +
+                        "<div class='item-meta'>" +
+                          "<span class='fa fa-info-circle'>info</span>" +
+                          "<span class='fa fa-pencil'>modify</span>" +
+                          "<span class='fa fa-trash'>delete</span>" +
+                        "</div></li>"
+        $('#'+itemDay).append(itemHTML);
+      }
+      //- google map API
+
+      function lookForPlace() {
+        autocomplete = new google.maps.places.Autocomplete(
+            /** @type {HTMLInputElement} */(document.getElementById('autocomplete')),{types:['geocode']});
+        google.maps.event.addListener(autocomplete, 'place_changed', function() {
+          var place = autocomplete.getPlace();
+
+
+          itemName = place.name;
+          pictureUrl = place.photos[0].getUrl({'maxWidth': 100});
+        });
+      }
+
+      function saveToDB(){
+        var planTitle = $('#title').text();
+        var planItineraryArr = [];
+        var planItemArr = [];
+        var planItemObj = {location: '', time: ''};
+        //- each day
+        $('.dayTabCol').each(function(){
+          var dayNo = Number($(this).attr('id'));
+          //- each item in that day
+          if($(this).children('.item').length!=0){
+            $(this).children('.item').each(function(){
+              var itemLocation = $(this).find('.location').text();
+              var itemTime = $(this).find('.item-time').text();
+              planItemObj = {location: itemLocation, time: itemTime};
+              planItemArr.push(planItemObj);
+            })
+            planItineraryArr.push({dayNumber: dayNo, item: planItemArr});
+          }
+          planItemArr = [];
+        })
+        console.log(planItineraryArr);
+
+        $.ajax({
+          method: 'PUT',
+          url: '/create-plan/' + planId + '/save',
+          data: {itinerary: planItineraryArr, '_csrf': $( "meta[name='csrf-token']").attr('content')},
+          success: function(response){
+            console.log('saved');
+          }
+        })
+      }
+
+      //- init
+      function init(){
+        setPage();
+        lookForPlace();
+        $('#publish').on('click', saveToDB);
+        $('#add').on('click', addNewItem);
+        $('.sortable').sortable({
+          placeholder: 'ui-sortable-placeholder'
+        })
+      }
+
+      init();
+    })

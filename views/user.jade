@@ -1,0 +1,106 @@
+extends layout
+
+block content
+  .container
+    .row
+      #accountPage.col-xs-12
+        .row
+          .col-xs-12.col-sm-3
+            table
+              tr
+                td
+                  h2 #{name}
+              tr
+                td
+                  img(src='#{picture}')
+          .col-xs-12.col-sm-9
+            .panel
+              ul.nav.nav-tabs(role='tablist')
+                li(role='representation').active
+                  a(href='#myPlan', aria-controls='home', role='tab', data-toggle='tab') My Plan
+                li(role='representation')
+                  a(href='#bookmark', aria-controls='home', role='tab', data-toggle='tab') Bookmark
+                li(role='representation')
+                  a(href='#setting', aria-controls='home', role='tab', data-toggle='tab') Setting
+            .tab-content
+              #myPlan.tab-pane.active(role='tabpanel')
+                #published.col-xs-12
+                  h2 Published plan
+                  .row
+                     //- .col-xs-6.col-sm-4
+                     //-  .thumbnail
+                     //-    img(src='img/kyoto1.jpg', alt='...')
+                     //-    .caption
+                     //-      h4 Thumbnail label
+                     //-      p
+                #draft.col-xs-12
+                  h2 Drafts
+                  .row
+              #bookmark.tab-pane(role='tabpanel')
+                p hihiiii
+              #setting.tab-pane(role='tabpanel')
+                include account/profile
+
+
+
+
+block script
+  script.
+    $(document).ready(function(){
+      var itemName;
+      var location;
+      var pictureUrl;
+      var itemTime;
+      var itemDay;
+      var autocomplete;
+      var planId = $('#idHere').text();
+      //- foursquare
+      var client_id = 'E4OKNS3UWZCS2HBEXOPFVHL5AI4HJHVLKXOIZZOKJX22BZV2';
+      var client_secret = 'ILCDF24CO1Q1CWLPLKXJCW5AVQ5U1KEUFSRBPQ5DYW0GUXIY';
+      var necessary = '&locale=en&client_id='+client_id+'&client_secret='+client_secret+'&v=20140806&m=foursquare';
+
+      function getUserPlan(){
+        $.ajax({
+          method: 'GET',
+          url: '/getUserPlan',
+          success: function(data){
+            for(var i=0; i<data.length; i++){
+              var planHTML =
+                            "<div class='planBox' style='display: inline-block;'>"+
+                                "<div class='thumbnail'>"+
+                                  "<div class='imgdiv'>"+
+                                  "<img src='" + data[i].pictureUrl+"'>" +
+                                  "</div>"+
+                                  "<div class='caption'>"+
+                                    "<a href='/view-plan/"+data[i]._id+"'><h4>" + data[i].title +"</h4></a>" +
+                                    "<a href='/edit-plan/"+data[i]._id+"'><i class='fa fa-pencil'></i></a>"+
+                                    "<a href='#'><i class='fa fa-times'></i></a>"+
+                                    "<p class='hide planId'>"+data[i]._id+"</p>"+
+                                  "</div></div></div>"
+              if(data[i].public){
+                $('#published').find('.row').append(planHTML);
+              } else {
+                $('#draft').find('.row').append(planHTML);
+              }
+            }
+          }
+        })
+      }
+      function deletePlan(){
+        var planId = $(this).parents('.planBox').find('.planId').text();
+        $(this).parents('.planBox').remove();
+        $.ajax({
+          method: 'DELETE',
+          url: '/remove/'+planId,
+          data: {'_csrf': $( "meta[name='csrf-token']").attr('content')}
+        })
+      }
+      //- init
+      function init(){
+        getUserPlan();
+        $('#myPlan').on('click', '.fa-times', deletePlan);
+
+      }
+
+      init();
+    })

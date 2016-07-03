@@ -1,0 +1,149 @@
+extends layout
+
+block content
+  .container
+    .row
+      #create.col-xs-12.col-md-8.col-md-offset-2
+        h1 Create your travel plan
+        p Which city are you going?
+        #content
+        //- Add more city box
+        //- #locationField.panel.panel-default(style='padding: 10px')
+        //-   label(for='locationTextField') Location
+        //-   input#autocomplete(placeholder='type "city, country"', type='text')
+        //-   p Location:
+        //-     span#name
+        //-   #pic
+        //- Destination
+
+        //- .panel.panel-default(style='padding: 10px')
+        //-   .row
+        //-     .col-xs-12.col-sm-3
+        //-       .date(style='margin: 5px; text-align: center;')
+        //-         .row
+        //-           .col-xs-4.col-sm-12
+        //-             a(href='#')
+        //-               i.fa.fa-calendar
+        //-               |  27,June
+        //-           .col-xs-4.col-sm-12
+        //-             span(style='margin-top: 8px') To
+        //-           .col-xs-4.col-sm-12
+        //-             a(href='#')
+        //-               i.fa.fa-calendar
+        //-               |  29,June
+
+        //-     .col-xs-12.col-sm-9(style='border-left: 1px solid rgb(221, 221, 221); height: 100px')
+        //-       .destination(style='margin-top: 10px;')
+        //-           img.picture(src='img/kyoto.jpg', style='float: left;margin-right: 20px')
+        //-           p(style='font-weight: 700;') Kyoto, Japan
+        //-           a(href='#')
+        //-             i.fa.fa-pencil
+        //-           a(href='#')
+        //-             i.fa.fa-times
+
+        //- Add more city box
+        .panel.panel-default(style='padding: 10px')
+          .row
+            .col-xs-12.col-sm-6
+              label(for='autocomplete', style='margin-right: 10px') Add destination:
+              input#autocomplete.form-control(type='text', placeholder='e.g. Kyoto, Japan')
+            .col-xs-12.col-sm-4
+              label(for='daysInput', style='margin-right: 10px') Day(s):
+              input#daysInput.form-control(type='number', placeholder='e.g. 2')
+            .col-xs-12.col-sm-2
+              button#addCity.btn.btn-default(type='submit') Add
+
+        .row
+          .col-xs-12
+            <a id="next" class="btn btn-success" role="button">Next</a>
+            <button id="reset" class="btn btn-default" type="submit">Reset</button>
+
+block script
+
+    script.
+      $(document).ready(function(){
+        var autocomplete;
+        var html;
+        var pictureUrl;
+        var name;
+        var locationNames = [];
+        var day;
+        var days = 0;
+        var placeID;
+
+        function lookForPlace() {
+          autocomplete = new google.maps.places.Autocomplete(
+              /** @type {HTMLInputElement} */(document.getElementById('autocomplete')),{types:['geocode']});
+          google.maps.event.addListener(autocomplete, 'place_changed', function() {
+            var place = autocomplete.getPlace();
+            var place = autocomplete.getPlace();
+
+            var lat = place.geometry.location.lat(),
+                lng = place.geometry.location.lng();
+
+            // Then do whatever you want with them
+
+            console.log(lat);
+            console.log(lng);
+
+
+
+            //- Generate HTML
+            pictureUrl = place.photos[0].getUrl({'maxWidth':100});
+            name = place.name;
+
+
+            //- placeID = place.place_id;
+          });
+          $('#addCity').on('click', function(){
+            day = $('#daysInput').val();
+            html = "<div class='panel panel-default destination-box'>"+
+                        "<div class='row'>" +
+                          "<div class='col-xs-12 col-sm-3'>" +
+                            "<div class='days'>" +
+                                "<h3>" + "<span class='noOfDay'>" + day + "</span> Days</h3>" +
+                            "</div>" +
+                          "</div>" +
+                          "<div class='col-xs-12 col-sm-9 des-subbox'>" +
+                            "<div class='destination'>" +
+                              "<img class='picture' src='" + pictureUrl + "'>" +
+                              "<p class='location-name'>" + name + "</p>" +
+                              "<a href='#'>" +
+                                "<i class='fa fa-pencil'></i></a>" +
+                              "<a href='#'>" +
+                                "<i class='fa fa-times'></i></a>" +
+                          "</div></div>" +
+                        "</div></div>" ;
+            $('#content').append(html);
+          })
+        }
+
+        function createPlan(){
+          $('.noOfDay').each(function(){
+            days += Number($(this).text());
+          })
+          locationNames = [];
+          $('.location-name').each(function(){
+            locationNames.push($(this).text());
+          })
+          console.log(locationNames);
+          console.log(days);
+          $.ajax({
+            method: 'POST',
+            url: '/createPlan',
+            data: {name: locationNames, days: days, '_csrf': $( "meta[name='csrf-token']").attr('content')},
+            success: function(response){
+              console.log('from create: ' + response);
+              window.id = response;
+              window.location.href='/create-plan/' + response;
+            }
+          },false);
+
+        }
+        function init(){
+          lookForPlace();
+          $('#next').on('click', createPlan);
+        }
+
+        init();
+      })

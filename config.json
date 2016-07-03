@@ -1,0 +1,16 @@
+{
+ "facebook": {
+   "appId": "291093357904121",
+   "appSecret": "d98d337772d2471dd4f1adecdf06dda1",
+   "callback": "http://localhost:3000/auth/facebook/callback"
+ },
+ "twitter": {
+   "appid" : "51Q76nwd8Cj524BhYb0ghWxvC",
+   "appSecret": "Zqsc835eEuyDRYm3DYLolJ9eJuFjKkAfuU7IpbpysnG3Kl2Tbk",
+   "callback": "http://localhost:3000/auth/twitter/callback"
+ },
+ "flickr": {
+  "appKey": "0521c897b1da7f484370e33a509e5150",
+  "appSecret": "7855193be6e81ca5"
+ }
+}

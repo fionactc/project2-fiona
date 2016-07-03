@@ -1,0 +1,349 @@
+extends layout
+
+block content
+  .container
+    include partials/flash
+    .row
+      #create-plan.col-xs-12
+        .row#metaAndControl
+          #meta.col-xs-12
+            .col-xs-8
+              h3#title
+                = plan.title
+              p#location.hide
+                = plan.location
+              p#idHere(style='position: absolute; visibility: hidden;')
+                = plan._id
+              p#noOfDay.hide
+                = plan.days
+              p#status.hide
+                = plan.public
+              p created by
+                a(href='#')
+                  = plan.userId
+              a(href='#') #food
+              a(href='#') #summertrip
+            .col-xs-4
+              button#publish.btn.btn-success Publish
+              button#save.btn.btn-warning Save
+              button#reset.btn.btn-default(data-toggle='modal', data-target='#resetBox') Reset
+              button#deletePlan.btn.btn-danger Delete
+          #resetBox.modal.fade(tabindex='-1', role='dialog', aria-labelledby='myModalLabel')
+            .modal-dialog(role='document')
+            .modal-content
+              .modal-header
+                h3 Reset all contents?
+              .modal-body
+                p Any unsaved changes will be lost.
+              .modal-footer
+                button#cancelReset.btn.btn-default(data-dismiss='modal') Cancel
+                button#confirmReset.btn.btn-primary(data-dismiss='modal') Confirm
+          #control.col-xs-12(style='height: 150px')
+              .row
+                .col-xs-2
+                  ul#myTabs.nav.nav-pills.nav-stacked
+                    li.active
+                      a(href='#new', data-toggle='pill') NEW
+                    li
+                      a(href='#cart', data-toggle='pill') CART
+                .col-xs-10
+                  .tab-content
+                    #new.tab-pane.active
+                      .row
+                        .col-xs-12
+                          .tab-content
+                            #destination.tab-pane.active
+                              .row
+                                .col-xs-7
+                                  label(for='autocomplete', style='margin-right: 10px') Destination:
+                                  input#autocomplete(type='text', placeholder='enter destination', style='width: 200px')
+                                  button#search.btn.btn-success Search
+                                .col-xs-3
+                                  label(style='float:left; margin-right: 10px') Day:
+                                  select.form-control#daySelect(style='width: 50px; height: 20px;')
+                                #itemSuggestion.col-xs-12
+                                  #innerContainer
+
+
+                    #cart.tab-pane CART
+        //- visible-xs
+        #timeline(style='width:100%')
+          //- - for(var i=1; i<=plan.days; i++)
+          //-   .dayCol(id=i)
+          //-     ul.sortable
+          //-       li.dayTitle Day#{i}
+
+
+
+block script
+  script.
+    $(document).ready(function(){
+      var itemName;
+      var location;
+      var pictureUrl;
+      var itemTime;
+      var itemDay;
+      var autocomplete;
+      var planId = $('#idHere').text();
+      //- foursquare
+      var client_id = 'E4OKNS3UWZCS2HBEXOPFVHL5AI4HJHVLKXOIZZOKJX22BZV2';
+      var client_secret = 'ILCDF24CO1Q1CWLPLKXJCW5AVQ5U1KEUFSRBPQ5DYW0GUXIY';
+      var necessary = '&locale=en&client_id='+client_id+'&client_secret='+client_secret+'&v=20140806&m=foursquare';
+
+      function setPage(){
+        var days = Number($('#noOfDay').text());
+        //- generate option list
+        for (var i=1; i<=days; i++){
+          $('#daySelect').append('<option>' + i + '</option>');
+          var dayHTML = "<div id='"+i+"' class='dayCol'>"+
+                          "<ul class='sortable'>" +
+                          "<li class='dayTitle'>Day"+i+"</li></ul>"
+                        "</div>";
+          $('#timeline').append(dayHTML);
+        }
+        var status = $('#status').text();
+        console.log(status);
+        if(status==true){
+          $('#save').addClass('hide');
+
+        }
+        //- if(status=='1'){
+        //- }
+        getData();
+      }
+
+      function addNewItem(){
+        var itemName = $(this).text();
+        //- itemName = $(this).find('.itemName').text();
+        console.log(this);
+        console.log(itemName);
+        itemDay = $('#daySelect').val();
+                var itemHTML = "<li class=item>" +
+                         "<h5>"+itemName+"</h5>"+
+                         "<span class='fa fa-caret-left'></span>"+
+                         "<span class='itemTime'>12</span><span>:00</span>"+
+                         "<span class='fa fa-caret-right'></span>"+
+                         "<span class='fa fa-times'></span>"+
+                       "</li>"
+
+        //- var itemHTML = "<li class='item'>" +
+        //-                 "<div class='up-and-down'>" +
+        //-                   "<div class='up'>" +
+        //-                     "<p class='fa fa-chevron-up'>" +
+        //-                   "</div>" +
+        //-                   "<div class='down'>" +
+        //-                     "<p class='fa fa-chevron-down'>" +
+        //-                   "</div>" +
+        //-                 "</div>" +
+        //-                 "<div class='item-content'>" +
+        //-                   "<p class='location'>" + itemName + "</p>" +
+        //-                   "<span class='item-time'>" + itemTime + "</span>" +
+        //-                 "</div>" +
+        //-                 "<div class='item-meta'>" +
+        //-                   "<span class='fa fa-info-circle'>info</span>" +
+        //-                   "<span class='fa fa-pencil'>modify</span>" +
+        //-                   "<span class='fa fa-trash'>delete</span>" +
+        //-                 "</div></li>"
+        $('#'+itemDay).find('ul').append(itemHTML);
+      }
+      function foursquareExplore(){
+        location = $('#location').text();
+        console.log('original');
+        $.ajax({
+          url: 'https://api.foursquare.com/v2/venues/explore?near='+location+'&limit=20&venuePhotos=1'+necessary,
+          dataType: 'json',
+          async: false,
+          success: function(data){
+            var locationList = data.response.groups[0];
+            for(var i=0; i<locationList.items.length; i++){
+              //- console.log(i);
+              var name = locationList.items[i].venue.name;
+              //- console.log(name);
+              var venueID = locationList.items[i].venue.id;
+              var address = locationList.items[i].venue.location.city;
+              //- console.log(locationList.items[i].venue.photos.groups[0].items[0].suffix);
+
+              var photoURL = locationList.items[i].venue.photos.groups[0].items[0].prefix + 'height300' + locationList.items[i].venue.photos.groups[0].items[0].suffix;
+              //- console.log(photoURL);
+              //- var photoURL = photo.response.photos.items[0].prefix + 'width200' +photo.response.photos.items[0].suffix;
+              var locationHTML = "<div class='suggestedLocation'>" +
+                  "<div class='inline'><img class='picture' src='"+photoURL+"'></p></div>" +
+
+                  "<div class='itemName details inline'><h4>" + name + "</h4>" +
+                  "<p>" + address + "</p></div>" +
+                "</div>";
+              $('#innerContainer').append(locationHTML);
+            }
+          }
+        })
+      }
+      function foursquareSearch(){
+        var keyword = $('#autocomplete').val();
+        $.ajax({
+          url: 'https://api.foursquare.com/v2/venues/explore?near='+location+'&query='+keyword+'&limit=20&venuePhotos=1'+necessary,
+          dataType: 'json',
+          async: false,
+          success: function(data){
+            $('.suggestedLocation').remove();
+            var locationList = data.response.groups[0];
+            for(var i=0; i<locationList.items.length; i++){
+
+              var name = locationList.items[i].venue.name;
+
+              var venueID = locationList.items[i].venue.id;
+              var address = locationList.items[i].venue.location.city;
+
+
+              var photoURL = locationList.items[i].venue.photos.groups[0].items[0].prefix + 'height300' + locationList.items[i].venue.photos.groups[0].items[0].suffix;
+
+              var locationHTML = "<div class='suggestedLocation'>" +
+                  "<div class='inline'><img class='picture' src='"+photoURL+"'></p></div>" +
+
+                  "<div class='details inline'><h4>" + name + "</h4>" +
+                  "<p>" + address + "</p></div>" +
+                "</div>";
+              $('#innerContainer').append(locationHTML);
+            }
+            $('h4').on('click', addNewItem);
+          }
+        })
+      }
+      function saveToDB(){
+        var planTitle = $('#title').text();
+        var planItineraryArr = [];
+        var planItemArr = [];
+        var planItemObj = {location: '', time: ''};
+        //- each day
+        $('.dayCol').each(function(){
+          var dayNo = Number($(this).attr('id'));
+          //- each item in that day
+          if($(this).find('.item').length!=0){
+            $(this).find('.item').each(function(){
+              var itemLocation = $(this).find('h5').text();
+              var itemTime = $(this).find('.itemTime').text();
+              planItemObj = {location: itemLocation, time: itemTime};
+              planItemArr.push(planItemObj);
+            })
+            planItineraryArr.push({dayNumber: dayNo, item: planItemArr});
+          }
+          planItemArr = [];
+        })
+        $.ajax({
+          method: 'PUT',
+          url: '/create-plan/' + planId + '/save',
+          data: {title: planTitle, public: 0, itinerary: planItineraryArr, '_csrf': $( "meta[name='csrf-token']").attr('content')},
+          success: function(response){
+            window.location.href='/edit-plan/'+response;
+            //- flash message
+          }
+        })
+      }
+      function publishToDB(){
+        var planTitle = $('#title').text();
+        var planItineraryArr = [];
+        var planItemArr = [];
+        var planItemObj = {location: '', time: ''};
+        //- each day
+        $('.dayCol').each(function(){
+          var dayNo = Number($(this).attr('id'));
+          //- each item in that day
+          if($(this).find('.item').length!=0){
+            $(this).find('.item').each(function(){
+              var itemLocation = $(this).find('h5').text();
+              var itemTime = $(this).find('.itemTime').text();
+              planItemObj = {location: itemLocation, time: itemTime};
+              planItemArr.push(planItemObj);
+            })
+            planItineraryArr.push({dayNumber: dayNo, item: planItemArr});
+          }
+          planItemArr = [];
+        })
+        $.ajax({
+          method: 'PUT',
+          url: '/create-plan/' + planId + '/save',
+          data: {title: planTitle, public: 1, itinerary: planItineraryArr, '_csrf': $( "meta[name='csrf-token']").attr('content')},
+          success: function(response){
+            window.location.href='/view-plan/'+response;
+          }
+        })
+      }
+      function getData(){
+        $.ajax({
+          method: 'GET',
+          url: '/view-plan/'+ planId +'/data',
+          success: function(plan){
+            console.log(plan);
+            for(var i=0; i<plan.plan.itinerary.length; i++){
+              var dayNo = plan.plan.itinerary[i].dayNumber;
+
+              for(var j=0; j<plan.plan.itinerary[i].item.length; j++){
+                var itemHTML = "<li class=item>" +
+                         "<h5>"+plan.plan.itinerary[i].item[j].location+"</h5>"+
+                          "<span class='fa fa-caret-left'></span>"+
+                         "<span class='itemTime'>"+plan.plan.itinerary[i].item[j].time+"</span><span>:00</span>"+
+                         "<span class='fa fa-caret-right'></span>"+
+                         "<span class='fa fa-times'></span>"+
+                       "</li>";
+                $('#'+dayNo).children('ul').append(itemHTML);
+              }
+            }
+          }
+
+        })
+      }
+      function resetContent(){
+        $('.item').remove();
+      }
+
+      function deletePlan(){
+          $.ajax({
+            method: 'DELETE',
+            url: '/remove/'+planId,
+            data: {'_csrf': $( "meta[name='csrf-token']").attr('content')}
+          })
+      }
+      function minusTime(){
+        var time = Number($(this).parents('.item').find('.itemTime').text());
+        if(time>0){
+          $(this).parents('.item').find('.itemTime').text(time-1);
+        }
+      }
+      function addTime(){
+        var time = Number($(this).parents('.item').find('.itemTime').text());
+        if(time<24){
+          $(this).parents('.item').find('.itemTime').text(time+1);
+        }
+      }
+      function deleteItem(){
+        $(this).parents('.item').remove();
+      }
+
+
+
+
+      //- init
+      function init(){
+        setPage();
+        foursquareExplore();
+        $('#publish').on('click', publishToDB);
+        $('#save').on('click', saveToDB);
+
+        $('#timeline').on('click', '.fa-caret-left', minusTime);
+        $('#timeline').on('click', '.fa-caret-right', addTime);
+        $('#timeline').on('click', '.fa-times', deleteItem);
+
+
+        $('#search').on('click', foursquareSearch);
+        $('#deletePlan').on('click', deletePlan);
+        $('#confirmReset').on('click', resetContent);
+        $('h4').on('click', addNewItem);
+        $('.sortable').sortable({
+          connectWith: '.sortable',
+          placeholder: 'ui-sortable-placeholder'
+        })
+
+
+      }
+
+      init();
+    })

@@ -1,0 +1,16 @@
+extends layout
+
+block content
+    .intro
+      .intro-body
+        .container
+          .row
+            .col-md-8.col-md-offset-2
+              h1 Hello Traveller!
+              p
+                | Explore the best travel itineraries.
+              .input-group
+                input.form-control(type='text', placeholder='Search for...')
+                span.input-group-btn
+                  button.btn.btn-default(type='button') search
+                  button.btn.btn-default(type='button') create

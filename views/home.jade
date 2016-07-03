@@ -1,0 +1,85 @@
+extends layout
+
+block content
+  .container
+    .row
+      #home.col-xs-12.col-sm-8.col-sm-offset-2
+        h1 Hello Traveller!
+        p
+          | Explore the best travel itineraries here
+        img#banner(src='img/landscape.png')
+        .input-group
+          input.form-control(type='text', placeholder='Search for...')
+          span.input-group-btn
+            button#search.btn.btn-default(type='button') search
+            button.btn.btn-default(type='button') create
+        h3
+        #results.row
+          //- .col-xs-6.col-sm-4
+          //-   .thumbnail
+          //-     img(src='img/kyoto1.jpg', alt='...')
+          //-     .caption
+          //-       h4 Thumbnail label
+          //-       p ...
+          //-       p
+          //-         a.btn.btn-primary(href='#', role='button') Button
+          //-         a.btn.btn-default(href='#', role='button') Button
+          //- .col-xs-6.col-sm-4
+          //-   .thumbnail
+          //-     img(src='img/bangkok.jpg', alt='...')
+          //-     .caption
+          //-       h4 Thumbnail label
+          //-       p ...
+          //-       p
+          //-         a.btn.btn-primary(href='#', role='button') Button
+          //-         a.btn.btn-default(href='#', role='button') Button
+          //- .col-xs-6.col-sm-4
+          //-   .thumbnail
+          //-     img(src='img/kyoto.jpg', alt='...')
+          //-     .caption
+          //-       h4 Thumbnail label
+          //-       p ...
+          //-       p
+          //-         a.btn.btn-primary(href='#', role='button') Button
+          //-         a.btn.btn-default(href='#', role='button') Button
+
+block script
+
+  script.
+    $(document).ready(function(){
+
+    function searchPlan(){
+      var keyword = $('input').val();
+      console.log(keyword);
+      $.ajax({
+        method: 'GET',
+        url: '/searchTitle/'+keyword,
+        success: function(data){
+          console.log(data);
+          $('h3').text('Search Results:');
+          for(var i=0; i<data.length; i++){
+            if(data[i].public){
+              var planHTML =
+                            "<div class='planBox' style='display: inline-block;'>"+
+                                "<div class='thumbnail'>"+
+                                  "<div class='imgdiv'>"+
+                                  "<img src='" + data[i].pictureUrl+"'>" +
+                                  "</div>"+
+                                  "<div class='caption'>"+
+                                    "<a href='/view-plan/"+data[i]._id+"'><h4>" + data[i].title +"</h4></a>" +
+                                    "<p class='hide planId'>"+data[i]._id+"</p>"+
+                                  "</div></div></div>"
+              $('#results').append(planHTML);
+            }
+          }
+        }
+      })
+    }
+
+    function init(){
+      $('#search').on('click', searchPlan);
+
+    }
+
+    init();
+    })

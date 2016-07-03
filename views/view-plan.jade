@@ -1,0 +1,123 @@
+extends layout
+
+block content
+  .container
+    include partials/flash
+    .row
+      #create-plan.col-xs-12
+        .row#metaAndControl
+          #meta.col-xs-12
+            .col-xs-8
+              h3#title
+                = plan.title
+              p#location.hide #{location}
+              p#idHere(style='position: absolute; visibility: hidden;')
+                = plan._id
+              p#noOfDay.hide #{days}
+              p created by
+                a(href='#')
+                  = plan.userId
+              span.fa.fa-heart
+              //- a(href='#') #food
+              //- a(href='#') #summertrip
+            .col-xs-4
+              button#edit.btn.btn-success Edit
+        //- visible-xs
+        #timeline(style='width:100%')
+          - for(var i=1; i<=plan.days; i++)
+            .dayCol(id=i)
+              ul.sortable
+                li.dayTitle Day#{i}
+
+
+
+block script
+  script.
+    $(document).ready(function(){
+      var itemName;
+      var location;
+      var pictureUrl;
+      var itemTime;
+      var itemDay;
+      var autocomplete;
+      var planId = $('#idHere').text();
+      //- foursquare
+      var client_id = 'E4OKNS3UWZCS2HBEXOPFVHL5AI4HJHVLKXOIZZOKJX22BZV2';
+      var client_secret = 'ILCDF24CO1Q1CWLPLKXJCW5AVQ5U1KEUFSRBPQ5DYW0GUXIY';
+      var necessary = '&locale=en&client_id='+client_id+'&client_secret='+client_secret+'&v=20140806&m=foursquare';
+
+      function setPage(){
+        var days = Number($('#noOfDay').text());
+        //- generate option list
+        for (var i=1; i<=days; i++){
+          $('#daySelect').append('<option>' + i + '</option>');
+          var dayHTML = "<div id='"+i+"' class='dayCol'>"+
+                          "<ul class='sortable'>" +
+                          "<li class='dayTitle'>Day"+i+"</li></ul>"
+                        "</div>";
+          $('#timeline').append(dayHTML);
+        }
+        getData();
+      }
+
+      function getData(){
+        //- console.log($('#idHere').text());
+        $.ajax({
+          method: 'GET',
+          url: '/view-plan/'+ planId +'/data',
+          success: function(plan){
+            //- for(var x=1; x<=plan.days; x++){
+            //-   var dayColHTML = "<div class='dayCol' id='"+x+"'>" +
+            //-                     "<ul class='sortable'>" +
+            //-                       "<li class='dayTitle'>Day" +x+"</li></ul></div>";
+            //-   $('#timeline').append(dayColHTML);
+            //- }
+            console.log(plan);
+            for(var i=0; i<plan.plan.itinerary.length; i++){
+              var dayNo = plan.plan.itinerary[i].dayNumber;
+
+              for(var j=0; j<plan.plan.itinerary[i].item.length; j++){
+                var itemHTML = "<li class=item>" +
+                         "<h5>"+plan.plan.itinerary[i].item[j].location+"</h5>"+
+                         "<span class='itemTime'>"+plan.plan.itinerary[i].item[j].time+"</span><span>:00</span>"+
+                       "</li>";
+                //- console.log(dayNo);
+                //- $('#timeline').append(itemHTML);
+                $('#'+dayNo).children('ul').append(itemHTML);
+              }
+            }
+          }
+
+        })
+      }
+
+      function editPlan(){
+        $.ajax({
+          method: 'POST',
+          url: '/view-plan/'+planId,
+          data: {'_csrf': $( "meta[name='csrf-token']").attr('content')},
+          success: function(response){
+            window.location.href='/edit-plan/'+response;
+
+          }
+        })
+      }
+
+      //- init
+      function init(){
+        setPage();
+        $('#edit').on('click', editPlan);
+        //- getData();
+        //- $('#publish').on('click', saveToDB);
+        //- $('#search').on('click', foursquareSearch);
+        //- $('h4').on('click', addNewItem);
+        //- $('.sortable').sortable({
+        //-   connectWith: '.sortable',
+        //-   placeholder: 'ui-sortable-placeholder'
+        //- })
+
+
+      }
+
+      init();
+    })

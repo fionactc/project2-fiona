@@ -1,0 +1,137 @@
+extends layout
+
+block content
+  .container
+    .row
+      #create.col-xs-12.col-md-8.col-md-offset-2
+        h1 Create your travel plan
+        p Which city are you going?
+        #content
+
+        //- Add more city box
+        #addCityBox.panel.panel-default(style='padding: 10px')
+          .row
+            .col-xs-12.col-sm-6
+              label(for='cityInput', style='margin-right: 10px') Add destination:
+              input#cityInput.form-control(type='text', placeholder='e.g. Hong Kong')
+            .col-xs-12.col-sm-4
+              label(for='daysInput', style='margin-right: 10px') Day(s):
+              input#daysInput.form-control(type='number', placeholder='e.g. 2')
+            .col-xs-12.col-sm-2
+              button#addCity.btn.btn-default(type='submit') Add
+
+        .row
+          .col-xs-12
+            <a id="next" class="btn btn-success" role="button">Next</a>
+            <button id="reset" class="btn btn-default" type="submit">Reset</button>
+
+block script
+
+    script.
+      $(document).ready(function(){
+        var locationNames = [];
+        var day;
+        var days = 0;
+        var cityName;
+        var photoURL;
+
+
+        function createPlan(){
+          $('.noOfDay').each(function(){
+            days += Number($(this).text());
+          })
+          locationNames = [];
+          $('.location-name').each(function(){
+            locationNames.push($(this).text());
+          })
+          var pictureUrl = $('.picture').attr('src');
+          console.log(pictureUrl);
+          console.log(locationNames);
+          console.log(days);
+          $.ajax({
+            method: 'POST',
+            url: '/createPlan',
+            data: {name: locationNames, pictureUrl: pictureUrl, days: days, '_csrf': $( "meta[name='csrf-token']").attr('content')},
+            success: function(response){
+              console.log('from create: ' + response);
+              window.location.href='/create-plan/' + response;
+            }
+          },false);
+        }
+
+        getCityPhoto = function(createHTML){
+          cityName = $('#cityInput').val();
+          day = $('#daysInput').val();
+
+          $.getJSON('https://api.flickr.com/services/rest/?method=flickr.photos.search&text='+cityName+'&safe_search=1&content_type=1&sort=relevance&api_key=0521c897b1da7f484370e33a509e5150&format=json&nojsoncallback=1',
+          function(data){
+            console.log('HIHI YES it reached json');
+            var num      = 0;
+            var farmId   = data.photos.photo[num].farm;
+            var serverId = data.photos.photo[num].server;
+            var id       = data.photos.photo[num].id;
+            var secret   = data.photos.photo[num].secret;
+            photoURL =  "https://farm"+ farmId + ".staticflickr.com/" + serverId + "/" + id +"_"+ secret + ".jpg";
+            createHTML();
+          })
+        }
+
+        function createPlace(){
+          getCityPhoto(function(){
+            var boxHTML = "<div class='panel panel-default destination-box'>"+
+                          "<div class='row'>" +
+                            "<div class='col-xs-12 col-sm-3'>" +
+                              "<div class='days'>" +
+                                  "<h3>" + "<span class='noOfDay'>" + day + "</span> Days</h3>" +
+                              "</div>" +
+                            "</div>" +
+                            "<div class='col-xs-12 col-sm-9 des-subbox'>" +
+                              "<div class='destination'>" +
+                                "<img class='picture' src='" + photoURL + "'>" +
+                                "<p class='location-name'>" + cityName + "</p>" +
+                                "<a href='#'>" +
+                                  "<i class='fa fa-pencil'></i></a>" +
+                                "<a class='delete' href='#'>" +
+                                  "<i class='fa fa-times'></i></a>" +
+                            "</div></div>" +
+                          "</div></div>" ;
+              $('#content').append(boxHTML);
+          });
+        }
+
+        function modify(){
+          $('#addCityBox').show();
+          $('#cityInput').val($('.location-name').text());
+          $('#daysInput').val($('.noOfDay').text());
+          $(this).parents('.destination-box').remove();
+        }
+
+        function removeDestination(){
+          $('#addCityBox').show();
+          //- $('#cityInput').val();
+          //- $('#daysInput').val();
+          $(this).parents('.destination-box').remove();
+        }
+
+        function init(){
+          //- lookForPlace();
+          $('#addCity').on('click', function(){
+            $('#addCityBox').hide();
+            createPlace();
+            $('#cityInput').val('');
+            $('#daysInput').val('');
+          });
+          $('#next').on('click', createPlan);
+          //- Delete box
+          $('#reset').on('click', function(){
+            $('.panel-default').remove();
+          })
+          $('#content').on('click', '.delete', function(){
+            $(this).parents('.destination-box').remove();
+          })
+          $('#content').on('click', '.fa-pencil', modify);
+          $('#content').on('click', '.fa-times', removeDestination);
+        }
+
+        init();
+      })
